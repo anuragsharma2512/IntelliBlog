@@ -18,8 +18,16 @@ class BlogNode:
 
         if "topic" in state and state["topic"]:
             prompt="""
-                   You are an expert blog content writer. Use Markdown formatting. Generate
-                   a blog title for the {topic}. This title should be creative and SEO friendly
+                    You are an expert blog title writer.
+
+                    Generate exactly ONE SEO-friendly blog title for the topic: {topic}
+
+                    Rules:
+                    - Return only the title.
+                    - No explanations.
+                    - No alternatives.
+                    - No bullet points.
+                    - No markdown.
                    """
             
             sytem_message=prompt.format(topic=state["topic"])
@@ -50,12 +58,18 @@ class BlogNode:
         {blog_content}
         
         """
-
+        print("TRANSLATION STATE:", state)
         blog_content=state["blog"]["content"]
         message=[
-            HumanMessage(translation_prompt.format(current_langurage=state["current_language"],blog_content=blog_content))
+            HumanMessage(translation_prompt.format(current_language=state["current_language"],blog_content=blog_content))
         ]
         translation_content = self.llm.with_structured_output(Blog).invoke(message)
+        return {
+            "blog": {
+                "title": state["blog"]["title"],
+                "content": translation_content.content
+            }
+        }
 
     
     def route(self,state:BlogState):
